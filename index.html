@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学校定时广播系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0FC6C2',
+                        accent: '#722ED1',
+                        dark: '#1D2129',
+                        darker: '#0F172A',
+                        light: '#F2F3F5',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                        info: '#86909C'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'neon': '0 0 5px #165DFF, 0 0 20px rgba(22, 93, 255, 0.5)',
+                        'neon-lg': '0 0 10px #165DFF, 0 0 30px rgba(22, 93, 255, 0.5)',
+                        'card': '0 4px 20px rgba(0, 0, 0, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 整合的CSS样式 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* 自定义动画工具类 */
+            .animate-fade-in {
+                animation: fadeIn 0.5s ease-in-out;
+            }
+            
+            .animate-slide-in {
+                animation: slideIn 0.3s ease-out;
+            }
+            
+            .animate-scale-in {
+                animation: scaleIn 0.2s ease-out;
+            }
+            
+            .animate-pulse-soft {
+                animation: pulseSoft 2s infinite;
+            }
+            
+            .animate-bounce-light {
+                animation: bounceLight 1.5s infinite;
+            }
+            
+            .animate-shine {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .animate-shine::after {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: linear-gradient(
+                    to right,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.2) 50%,
+                    rgba(255, 255, 255, 0) 100%
+                );
+                transform: rotate(30deg);
+                animation: shine 3s infinite;
+            }
+            
+            /* 3D变换效果 */
+            .perspective-1000 {
+                perspective: 1000px;
+            }
+            
+            .preserve-3d {
+                transform-style: preserve-3d;
+            }
+            
+            .backface-hidden {
+                backface-visibility: hidden;
+            }
+            
+            .rotate-y-180 {
+                transform: rotateY(180deg);
+            }
+            
+            /* 自定义过渡效果 */
+            .transition-all-300 {
+                transition: all 0.3s ease;
+            }
+            
+            .transition-transform-300 {
+                transition: transform 0.3s ease;
+            }
+            
+            .transition-opacity-300 {
+                transition: opacity 0.3s ease;
+            }
+            
+            .transition-colors-300 {
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+            
+            /* 悬停效果增强 */
+            .hover-lift {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            .hover-lift:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            
+            .hover-glow {
+                transition: box-shadow 0.3s ease;
+            }
+            
+            .hover-glow:hover {
+                box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            }
+            
+            /* 点击波纹效果 */
+            .ripple {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .ripple::after {
+                content: '';
+                display: block;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                pointer-events: none;
+                background-image: radial-gradient(circle, #fff 10%, transparent 10.01%);
+                background-repeat: no-repeat;
+                background-position: 50%;
+                transform: scale(10, 10);
+                opacity: 0;
+                transition: transform 0.5s, opacity 0.5s;
+            }
+            
+            .ripple:active::after {
+                transform: scale(0, 0);
+                opacity: 0.3;
+                transition: 0s;
+            }
+            
+            /* 滚动指示器 */
+            .scroll-indicator {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #3B82F6, #8B5CF6, #EC4899);
+                z-index: 100;
+                transition: width 0.1s ease;
+            }
+            
+            /* 加载动画 */
+            .loader {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: #fff;
+                animation: spin 0.8s ease-in-out infinite;
+            }
+            
+            /* 响应式工具类 */
+            .content-auto {
+                content-visibility: auto;
+            }
+            
+            /* 安全区域适配 */
+            .safe-top {
+                padding-top: env(safe-area-inset-top, 0px);
+            }
+            .safe-bottom {
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+            
+            /* 触摸优化 */
+            .touch-friendly {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* 滚动优化 */
+            .smooth-scroll {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
+            }
+            
+            /* 网格背景 */
+            .bg-grid {
+                background-image: 
+                    linear-gradient(to right, rgba(22, 93, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(22, 93, 255, 0.03) 1px, transparent 1px);
+                background-size: 30px 30px;
+            }
+            
+            /* 文本阴影 */
+            .text-shadow {
+                text-shadow: 0 0 10px rgba(22, 93, 255, 0.3);
+            }
+            
+            /* 玻璃效果 */
+            .glass-effect {
+                background: rgba(30, 41, 59, 0.7);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(22, 93, 255, 0.1);
+            }
+            
+            /* 侧边栏激活项 */
+            .sidebar-item-active {
+                @apply bg-primary/20 text-primary border-l-4 border-primary;
+            }
+            
+            /* 统计卡片 */
+            .stat-card {
+                @apply glass-effect rounded-xl p-6 shadow-card transition-all duration-300 hover:shadow-neon hover:-translate-y-1;
+            }
+            
+            /* 滚动条样式 */
+            .scrollbar-thin {
+                scrollbar-width: thin;
+            }
+            
+            .scrollbar-thin::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+            }
+            
+            .scrollbar-thin::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            
+            .scrollbar-thin::-webkit-scrollbar-thumb {
+                background: rgba(22, 93, 255, 0.5);
+                border-radius: 2px;
+            }
+            
+            .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+                background: rgba(22, 93, 255, 0.7);
+            }
+            
+            /* 进度条动画 */
+            .progress-bar {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .progress-bar::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                animation: shimmer 2s infinite;
+            }
+        }
+        
+        /* 关键帧动画定义 */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes pulseSoft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes bounceLight {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; opacity: 0; }
+            20% { opacity: 0.4; }
+            100% { left: 100%; opacity: 0; }
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        
+        /* 基础响应式调整 */
+        * { box-sizing: border-box; }
+        
+        body {
+            font-size: clamp(0.875rem, 2vw, 1rem);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* 移动优先响应式设计 */
+        @media (max-width: 575.98px) {
+            .sidebar {
+                position: fixed !important;
+                top: 0;
+                left: -300px;
+                z-index: 50;
+                height: 100vh;
+                width: 280px;
+                transition: left 0.3s ease;
+                padding-top: 5rem !important;
+                background: rgba(15, 23, 42, 0.95) !important;
+                backdrop-filter: blur(10px);
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem !important;
+                padding-top: 5rem !important;
+            }
+            
+            .menu-toggle {
+                display: flex !important;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            .responsive-table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+        }
+        
+        @media (min-width: 576px) and (max-width: 767.98px) {
+            .sidebar {
+                width: 260px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            .menu-toggle {
+                display: flex !important;
+            }
+        }
+        
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .main-content {
+                margin-left: 240px;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            .menu-toggle {
+                display: flex !important;
+            }
+        }
+        
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .sidebar {
+                width: 260px;
+            }
+            
+            .main-content {
+                margin-left: 260px;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: repeat(3, 1fr) !important;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+    </style>
+    
+    <!-- 整合的JavaScript功能 -->
+      <script>
+          // 身份验证与用户管理模块
+          const authModule = (function() {
+              // 角色定义与权限映射
+              const ROLES = {
+                  ADMIN: 'admin',
+                  TEACHER: 'teacher',
+                  OPERATOR: 'operator',
+                  VIEWER: 'viewer'
+              };
+
+              // 权限定义
+              const PERMISSIONS = {
+                  USERS: {
+                      VIEW: 'users:view',
+                      CREATE: 'users:create',
+                      EDIT: 'users:edit',
+                      DELETE: 'users:delete'
+                  },
+                  SCHEDULES: {
+                      VIEW: 'schedules:view',
+                      CREATE: 'schedules:create',
+                      EDIT: 'schedules:edit',
+                      DELETE: 'schedules:delete'
+                  },
+                  BROADCASTS: {
+                      VIEW: 'broadcasts:view',
+                      CREATE: 'broadcasts:create',
+                      EDIT: 'broadcasts:edit',
+                      DELETE: 'broadcasts:delete',
+                      PLAY: 'broadcasts:play'
+                  },
+                  SETTINGS: {
+                      VIEW: 'settings:view',
+                      EDIT: 'settings:edit'
+                  }
+              };
+
+              // 角色权限映射
+              const ROLE_PERMISSIONS = {
+                  [ROLES.ADMIN]: Object.values(PERMISSIONS).flatMap(Object.values),
+                  [ROLES.TEACHER]: [
+                      PERMISSIONS.USERS.VIEW,
+                      PERMISSIONS.SCHEDULES.VIEW,
+                      PERMISSIONS.SCHEDULES.CREATE,
+                      PERMISSIONS.SCHEDULES.EDIT,
+                      PERMISSIONS.BROADCASTS.VIEW,
+                      PERMISSIONS.BROADCASTS.CREATE,
+                      PERMISSIONS.BROADCASTS.EDIT,
+                      PERMISSIONS.BROADCASTS.PLAY,
+                      PERMISSIONS.SETTINGS.VIEW
+                  ],
+                  [ROLES.OPERATOR]: [
+                      PERMISSIONS.SCHEDULES.VIEW,
+                      PERMISSIONS.BROADCASTS.VIEW,
+                      PERMISSIONS.BROADCASTS.PLAY
+                  ],
+                  [ROLES.VIEWER]: [
+                      PERMISSIONS.SCHEDULES.VIEW,
+                      PERMISSIONS.BROADCASTS.VIEW
+                  ]
+              };
+
+              // 模拟用户数据库
+              let mockUsers = [
+                  {
+                      id: 1,
+                      username: 'admin',
+                      password: 'admin123',
+                      role: ROLES.ADMIN,
+                      name: '系统管理员',
+                      email: 'admin@example.com',
+                      phone: '13800138000',
+                      department: '信息技术部',
+                      createdAt: new Date('2024-01-01').toISOString(),
+                      updatedAt: new Date('2024-01-01').toISOString(),
+                      lastLogin: null,
+                      status: 'active',
+                      isPasswordExpired: false,
+                      passwordLastChanged: new Date('2024-01-01').toISOString()
+                  },
+                  {
+                      id: 2,
+                      username: 'teacher',
+                      password: 'teacher123',
+                      role: ROLES.TEACHER,
+                      name: '教师用户',
+                      email: 'teacher@example.com',
+                      phone: '13900139000',
+                      department: '教学部',
+                      createdAt: new Date('2024-01-02').toISOString(),
+                      updatedAt: new Date('2024-01-02').toISOString(),
+                      lastLogin: null,
+                      status: 'active',
+                      isPasswordExpired: false,
+                      passwordLastChanged: new Date('2024-01-02').toISOString()
+                  },
+                  {
+                      id: 3,
+                      username: 'operator',
+                      password: 'operator123',
+                      role: ROLES.OPERATOR,
+                      name: '操作员',
+                      email: 'operator@example.com',
+                      phone: '13700137000',
+                      department: '广播室',
+                      createdAt: new Date('2024-01-03').toISOString(),
+                      updatedAt: new Date('2024-01-03').toISOString(),
+                      lastLogin: null,
+                      status: 'active',
+                      isPasswordExpired: false,
+                      passwordLastChanged: new Date('2024-01-03').toISOString()
+                  },
+                  {
+                      id: 4,
+                      username: 'viewer',
+                      password: 'viewer123',
+                      role: ROLES.VIEWER,
+                      name: '查看用户',
+                      email: 'viewer@example.com',
+                      phone: '13600136000',
+                      department: '行政部',
+                      createdAt: new Date('2024-01-04').toISOString(),
+                      updatedAt: new Date('2024-01-04').toISOString(),
+                      lastLogin: null,
+                      status: 'active',
+                      isPasswordExpired: false,
+                      passwordLastChanged: new Date('2024-01-04').toISOString()
+                  }
+              ];
+
+              // 用户活动日志
+              let userActivityLog = [];
+
+              // 从localStorage恢复数据
+              function loadDataFromStorage() {
+                  try {
+                      const savedUsers = localStorage.getItem('users');
+                      const savedLogs = localStorage.getItem('userActivityLog');
+                      
+                      if (savedUsers) {
+                          mockUsers = JSON.parse(savedUsers);
+                      }
+                      
+                      if (savedLogs) {
+                          userActivityLog = JSON.parse(savedLogs);
+                      }
+                  } catch (error) {
+                      console.error('从localStorage加载数据失败:', error);
+                  }
+              }
+
+              // 保存数据到localStorage
+              function saveDataToStorage() {
+                  try {
+                      localStorage.setItem('users', JSON.stringify(mockUsers));
+                      localStorage.setItem('userActivityLog', JSON.stringify(userActivityLog));
+                  } catch (error) {
+                      console.error('保存数据到localStorage失败:', error);
+                  }
+              }
+
+              // 登录函数
+              function login(username, password) {
+                  return new Promise((resolve, reject) => {
+                      setTimeout(() => {
+                          const user = mockUsers.find(u => u.username === username);
+                          
+                          if (!user || user.password !== password) {
+                              reject({ success: false, message: '用户名或密码错误' });
+                              return;
+                          }
+                          
+                          if (user.status !== 'active') {
+                              reject({ success: false, message: '用户账户已禁用' });
+                              return;
+                          }
+                          
+                          user.lastLogin = new Date().toISOString();
+                          saveDataToStorage();
+                          
+                          const token = generateToken(user);
+                          const userData = {
+                              id: user.id,
+                              username: user.username,
+                              role: user.role,
+                              name: user.name,
+                              email: user.email,
+                              department: user.department,
+                              lastLogin: user.lastLogin,
+                              permissions: ROLE_PERMISSIONS[user.role] || []
+                          };
+                          
+                          localStorage.setItem('currentUser', JSON.stringify(userData));
+                          localStorage.setItem('authToken', token);
+                          localStorage.setItem('lastActivity', Date.now().toString());
+                          
+                          resolve({ success: true, user: userData, token });
+                      }, 500);
+                  });
+              }
+
+              // 登出函数
+              function logout() {
+                  localStorage.removeItem('currentUser');
+                  localStorage.removeItem('authToken');
+                  localStorage.removeItem('lastActivity');
+              }
+
+              // 验证用户是否已登录
+              function isAuthenticated() {
+                  const token = localStorage.getItem('authToken');
+                  const user = localStorage.getItem('currentUser');
+                  
+                  if (!token || !user) {
+                      return false;
+                  }
+                  
+                  const lastActivity = localStorage.getItem('lastActivity');
+                  if (!lastActivity) {
+                      return false;
+                  }
+                  
+                  // 检查登录是否过期（30分钟无活动）
+                  const now = Date.now();
+                  const activityTime = parseInt(lastActivity);
+                  const expireTime = 30 * 60 * 1000; // 30分钟
+                  
+                  if (now - activityTime > expireTime) {
+                      logout();
+                      return false;
+                  }
+                  
+                  localStorage.setItem('lastActivity', now.toString());
+                  return true;
+              }
+
+              // 获取当前登录用户信息
+              function getCurrentUser() {
+                  if (!isAuthenticated()) {
+                      return null;
+                  }
+                  
+                  try {
+                      return JSON.parse(localStorage.getItem('currentUser'));
+                  } catch (error) {
+                      console.error('解析用户信息失败:', error);
+                      return null;
+                  }
+              }
+
+              // 生成模拟token
+              function generateToken(user) {
+                  const timestamp = Date.now();
+                  const payload = {
+                      id: user.id,
+                      username: user.username,
+                      role: user.role,
+                      exp: timestamp + 24 * 60 * 60 * 1000 // 24小时过期
+                  };
+                  return btoa(JSON.stringify(payload));
+              }
+
+              // 初始化
+              loadDataFromStorage();
+
+              // 导出公共方法
+              return {
+                  login,
+                  logout,
+                  isAuthenticated,
+                  getCurrentUser,
+                  ROLES,
+                  PERMISSIONS,
+                  checkRole: (requiredRoles) => {
+                      const user = getCurrentUser();
+                      if (!user) return false;
+                      return Array.isArray(requiredRoles) ? requiredRoles.includes(user.role) : user.role === requiredRoles;
+                  },
+                  checkPermission: (permission) => {
+                      const user = getCurrentUser();
+                      if (!user) return false;
+                      if (user.role === ROLES.ADMIN) return true;
+                      return user.permissions.includes(permission);
+                  }
+              };
+          })();
+
+          // 数据持久化管理模块
+          const Storage = {
+              prefix: 'school_broadcast_',
+              version: '1.0.0',
+              
+              init() {
+                  try {
+                      this.testStorage();
+                      const currentVersion = this.getItem('version');
+                      if (!currentVersion || currentVersion !== this.version) {
+                          this.initializeDefaultData();
+                          this.setItem('version', this.version);
+                      }
+                  } catch (error) {
+                      console.error('存储模块初始化失败:', error);
+                  }
+              },
+              
+              testStorage() {
+                  const testKey = this.prefix + '_test';
+                  try {
+                      localStorage.setItem(testKey, 'test');
+                      localStorage.removeItem(testKey);
+                      return true;
+                  } catch (e) {
+                      throw new Error('localStorage不可用');
+                  }
+              },
+              
+              getKey(key) {
+                  return this.prefix + key;
+              },
+              
+              setItem(key, value) {
+                  try {
+                      const storageKey = this.getKey(key);
+                      const serializedValue = JSON.stringify(value);
+                      localStorage.setItem(storageKey, serializedValue);
+                      return true;
+                  } catch (error) {
+                      console.error(`存储数据失败 [${key}]:`, error);
+                      return false;
+                  }
+              },
+              
+              getItem(key, defaultValue = null) {
+                  try {
+                      const storageKey = this.getKey(key);
+                      const serializedValue = localStorage.getItem(storageKey);
+                      if (serializedValue === null) {
+                          return defaultValue;
+                      }
+                      return JSON.parse(serializedValue);
+                  } catch (error) {
+                      console.error(`读取数据失败 [${key}]:`, error);
+                      return defaultValue;
+                  }
+              },
+              
+              removeItem(key) {
+                  try {
+                      const storageKey = this.getKey(key);
+                      localStorage.removeItem(storageKey);
+                      return true;
+                  } catch (error) {
+                      console.error(`删除数据失败 [${key}]:`, error);
+                      return false;
+                  }
+              },
+              
+              clearAll() {
+                  try {
+                      const keysToRemove = [];
+                      for (let i = 0; i < localStorage.length; i++) {
+                          const key = localStorage.key(i);
+                          if (key && key.startsWith(this.prefix)) {
+                              keysToRemove.push(key);
+                          }
+                      }
+                      keysToRemove.forEach(key => localStorage.removeItem(key));
+                      return true;
+                  } catch (error) {
+                      console.error('清除所有数据失败:', error);
+                      return false;
+                  }
+              },
+              
+              initializeDefaultData() {
+                  const defaultSettings = {
+                      system: {
+                          theme: 'dark',
+                          language: 'zh-CN',
+                          notificationEnabled: true,
+                          soundEnabled: true
+                      },
+                      player: {
+                          volume: 80,
+                          playbackRate: 1.0,
+                          autoPlay: false
+                      }
+                  };
+                  this.setItem('settings', defaultSettings);
+              }
+          };
+
+          // 初始化存储模块
+          Storage.init();
+
+          // 音频播放器模块
+          class AudioPlayer {
+              constructor() {
+                  this.audioElement = null;
+                  this.visualizerCanvas = null;
+                  this.visualizerContext = null;
+                  this.audioContext = null;
+                  this.sourceNode = null;
+                  this.analyserNode = null;
+                  this.dataArray = null;
+                  this.animationFrameId = null;
+                  this.isVisualizing = false;
+                  this.currentBroadcast = null;
+                  this.volume = 1.0;
+                  this.playbackRate = 1.0;
+                  this.isInitialized = false;
+                  this.callbacks = {
+                      onPlay: [],
+                      onPause: [],
+                      onStop: [],
+                      onEnded: [],
+                      onTimeUpdate: [],
+                      onError: []
+                  };
+              }
+
+              init(audioElement, visualizerCanvas = null) {
+                  if (!audioElement) {
+                      throw new Error('音频元素未提供');
+                  }
+
+                  this.audioElement = audioElement;
+                  this.setupAudioEventListeners();
+                  
+                  if (visualizerCanvas) {
+                      this.setupVisualizer(visualizerCanvas);
+                  }
+                  
+                  this.restoreSettings();
+                  this.isInitialized = true;
+              }
+
+              setupAudioEventListeners() {
+                  this.audioElement.addEventListener('play', () => this.handlePlay());
+                  this.audioElement.addEventListener('pause', () => this.handlePause());
+                  this.audioElement.addEventListener('ended', () => this.handleEnded());
+                  this.audioElement.addEventListener('timeupdate', () => this.handleTimeUpdate());
+                  this.audioElement.addEventListener('error', (e) => this.handleError(e));
+              }
+
+              async play(broadcast, textContent, audioUrl = null) {
+                  if (!this.isInitialized) {
+                      throw new Error('音频播放器尚未初始化');
+                  }
+
+                  try {
+                      this.currentBroadcast = broadcast;
+                      this.stop();
+                      
+                      if (audioUrl) {
+                          this.audioElement.src = audioUrl;
+                          this.audioElement.play();
+                          return;
+                      }
+                      
+                      if ('speechSynthesis' in window) {
+                          window.speechSynthesis.cancel();
+                          const utterance = new SpeechSynthesisUtterance(textContent);
+                          utterance.lang = 'zh-CN';
+                          utterance.rate = this.playbackRate;
+                          utterance.volume = this.volume;
+                          utterance.onstart = () => this.handlePlay();
+                          utterance.onend = () => this.handleEnded();
+                          window.speechSynthesis.speak(utterance);
+                      } else {
+                          throw new Error('浏览器不支持语音合成功能');
+                      }
+                  } catch (error) {
+                      console.error('播放广播失败:', error);
+                      throw error;
+                  }
+              }
+
+              pause() {
+                  if (this.audioElement.src && !this.audioElement.paused) {
+                      this.audioElement.pause();
+                  } else if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
+                      window.speechSynthesis.pause();
+                  }
+              }
+
+              stop() {
+                  if (this.audioElement.src) {
+                      this.audioElement.pause();
+                      this.audioElement.currentTime = 0;
+                      this.audioElement.src = '';
+                  }
+                  
+                  if ('speechSynthesis' in window) {
+                      window.speechSynthesis.cancel();
+                  }
+                  
+                  this.stopVisualization();
+              }
+
+              setVolume(volume) {
+                  this.volume = Math.max(0, Math.min(1, volume));
+                  if (this.audioElement) {
+                      this.audioElement.volume = this.volume;
+                  }
+                  this.saveSettings();
+              }
+
+              saveSettings() {
+                  try {
+                      const settings = {
+                          volume: this.volume,
+                          playbackRate: this.playbackRate
+                      };
+                      localStorage.setItem('audioPlayerSettings', JSON.stringify(settings));
+                  } catch (error) {
+                      console.error('保存音频播放器设置失败:', error);
+                  }
+              }
+
+              restoreSettings() {
+                  try {
+                      const savedSettings = localStorage.getItem('audioPlayerSettings');
+                      if (savedSettings) {
+                          const settings = JSON.parse(savedSettings);
+                          if (settings.volume !== undefined) {
+                              this.volume = settings.volume;
+                              this.audioElement.volume = this.volume;
+                          }
+                      }
+                  } catch (error) {
+                      console.error('恢复音频播放器设置失败:', error);
+                  }
+              }
+
+              handlePlay() {
+                  console.log('开始播放广播:', this.currentBroadcast ? this.currentBroadcast.title : '未知');
+              }
+
+              handleEnded() {
+                  console.log('广播播放结束:', this.currentBroadcast ? this.currentBroadcast.title : '未知');
+              }
+
+              stopVisualization() {
+                  if (this.animationFrameId) {
+                      cancelAnimationFrame(this.animationFrameId);
+                      this.animationFrameId = null;
+                  }
+                  this.isVisualizing = false;
+              }
+          }
+
+          // 创建音频播放器实例
+          window.audioPlayer = new AudioPlayer();
+
+          // 登录表单处理
+          document.addEventListener('DOMContentLoaded', function() {
+              // 检查登录状态
+              if (authModule.isAuthenticated()) {
+                  document.getElementById('login-container').style.display = 'none';
+                  document.getElementById('app-container').style.display = 'flex';
+                  updateUserInfo();
+              }
+
+              // 登录表单提交
+              const loginForm = document.getElementById('loginForm');
+              if (loginForm) {
+                  loginForm.addEventListener('submit', async function(e) {
+                      e.preventDefault();
+                      const username = document.getElementById('username').value;
+                      const password = document.getElementById('password').value;
+                      const submitButton = document.getElementById('loginButton');
+                      const errorMessage = document.getElementById('error-message');
+
+                      // 显示加载状态
+                      submitButton.disabled = true;
+                      submitButton.innerHTML = '<span class="loader mr-2"></span> 登录中...';
+                      errorMessage.textContent = '';
+
+                      try {
+                          const result = await authModule.login(username, password);
+                          if (result.success) {
+                              document.getElementById('login-container').style.display = 'none';
+                              document.getElementById('app-container').style.display = 'flex';
+                              updateUserInfo();
+                          }
+                      } catch (error) {
+                          errorMessage.textContent = error.message || '登录失败，请重试';
+                      } finally {
+                          submitButton.disabled = false;
+                          submitButton.innerHTML = '登录';
+                      }
+                  });
+              }
+
+              // 登出按钮
+              const logoutButton = document.getElementById('logoutButton');
+              if (logoutButton) {
+                  logoutButton.addEventListener('click', function() {
+                      authModule.logout();
+                      document.getElementById('login-container').style.display = 'flex';
+                      document.getElementById('app-container').style.display = 'none';
+                  });
+              }
+
+              // 更新用户信息
+              function updateUserInfo() {
+                  const user = authModule.getCurrentUser();
+                  if (user) {
+                      const userInfo = document.getElementById('user-info');
+                      const welcomeText = document.getElementById('welcome-text');
+                      if (userInfo) userInfo.textContent = `${user.name} (${user.username})`;
+                      if (welcomeText) welcomeText.textContent = `欢迎回来，${user.name}`;
+                  }
+              }
+
+              // 初始化音频播放器
+              const audioElement = document.getElementById('audioPlayer');
+              if (audioElement) {
+                  window.audioPlayer.init(audioElement);
+              }
+          });
+      </script>
+</head>
+<body>
+    <!-- 登录界面 -->
+    <div id="loginPage" class="min-h-screen bg-gradient-to-br from-dark to-gray-900 text-white flex items-center justify-center p-4 bg-grid overflow-hidden relative">
+        <!-- 登录页面内容将在这里 -->
+    </div>
+    
+    <!-- 主应用界面 -->
+    <div id="mainApp" class="hidden">
+        <!-- 主应用内容将在这里 -->
+    </div>
+</body>
+</html>
